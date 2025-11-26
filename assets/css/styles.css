@@ -1,0 +1,35 @@
+:root{
+  --vz-navy:#0a2a43;
+  --vz-sky:#2ca7ff;
+  --vz-bg:#0d0f14;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  background:var(--vz-bg);
+  color:#f8f9fa;
+  font-family:'Orbitron', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.main-navbar{
+  background:linear-gradient(90deg,var(--vz-navy),#155a93);
+}
+
+.card{
+  border-radius:14px;
+}
+
+#map{
+  height:360px;
+  border:2px solid rgba(44,167,255,.35);
+}
+
+.live-box{
+  background:rgba(44,167,255,.08);
+  border:2px dashed rgba(44,167,255,.35);
+}
+
+footer{
+  border-top:1px solid rgba(255,255,255,.08);
+}
