@@ -1,58 +1,55 @@
 <?php
+// guardar_pedido.php
 session_start();
-header('Content-Type: application/json; charset=utf-8');
 
-if (!isset($_SESSION['carrito']) || empty($_SESSION['carrito'])) {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'msg' => 'Carrito vacío']);
-    exit;
-}
+require 'db.php'; // aquí tienes $mongoManager
 
-// Intentamos conectar a Mongo
 try {
-    require __DIR__ . '/db.php';
-} catch (Throwable $e) {
-    // Aquí caemos si no está instalada la extensión o la URI está mal
-    echo json_encode(['ok' => false, 'msg' => 'Error Mongo: ' . $e->getMessage()]);
-    exit;
-}
+    // Verificar que haya carrito
+    if (!isset($_SESSION['carrito']) || empty($_SESSION['carrito'])) {
+        header('Location: carrito.php?guardado=0');
+        exit();
+    }
 
-$carrito = $_SESSION['carrito'];
+    $carrito = $_SESSION['carrito'];
 
-$total = 0;
-$items = [];
+    // Calcular total
+    $total = 0;
+    foreach ($carrito as $item) {
+        $precio   = $item['precio']   ?? 0;
+        $cantidad = $item['cantidad'] ?? 1;
+        $total += $precio * $cantidad;
+    }
 
-foreach ($carrito as $item) {
-    $subtotal = $item['precio'] * $item['cantidad'];
-    $total += $subtotal;
-
-    $items[] = [
-        'nombre'   => $item['nombre'],
-        'precio'   => $item['precio'],
-        'cantidad' => $item['cantidad'],
-        'subtotal' => $subtotal,
+    // Documento del pedido
+    $pedido = [
+        'items' => $carrito,
+        'total' => $total,
+        'fecha' => new MongoDB\BSON\UTCDateTime(), // requiere la librería de Mongo
     ];
-}
 
-$pedido = [
-    'fecha'  => new MongoDB\BSON\UTCDateTime((new DateTime())->getTimestamp() * 1000),
-    'items'  => $items,
-    'total'  => $total,
-    'estado' => 'pendiente',
-    'origen' => 'victiusstore'
-];
+    // Insertar en la colección "pedidos" de la BD "victiusstore"
+    $bulk = new MongoDB\Driver\BulkWrite();
+    $bulk->insert($pedido);
 
-$bulk = new MongoDB\Driver\BulkWrite();
-$bulk->insert($pedido);
+    $result = $mongoManager->executeBulkWrite('victiusstore.pedidos', $bulk);
 
-try {
-    // OJO: cambia "victiusdb" si tu BD tiene otro nombre
-    $result = $mongoManager->executeBulkWrite('victiusdb.pedidos', $bulk);
-    echo json_encode([
-        'ok'       => true,
-        'inserted' => $result->getInsertedCount()
-    ]);
+    if ($result->getInsertedCount() > 0) {
+        // Opcional: vaciar carrito después de guardar
+        unset($_SESSION['carrito']);
+
+        // Redirigimos con mensaje de éxito
+        header('Location: carrito.php?guardado=1');
+        exit();
+    } else {
+        // Algo falló al insertar
+        header('Location: carrito.php?guardado=0');
+        exit();
+    }
+
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'msg' => 'Error al insertar: ' . $e->getMessage()]);
+    // En caso de error, redirigimos con fallo
+    // (no mostramos el error real al usuario final)
+    header('Location: carrito.php?guardado=0');
+    exit();
 }
