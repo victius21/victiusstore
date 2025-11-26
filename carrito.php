@@ -1,122 +1,106 @@
 <?php
+// carrito.php
 session_start();
 
-// Calcular total
+// Obtenemos el carrito desde la sesión (si no existe, arreglo vacío)
+$carrito = isset($_SESSION['carrito']) ? $_SESSION['carrito'] : [];
+
+// Calculamos total
 $total = 0;
-if (isset($_SESSION['carrito'])) {
-    foreach ($_SESSION['carrito'] as $item) {
-        $total += $item['precio'] * $item['cantidad'];
-    }
+foreach ($carrito as $item) {
+    $subtotal = ($item['precio'] ?? 0) * ($item['cantidad'] ?? 1);
+    $total += $subtotal;
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Carrito - Victius Veracruz</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <title>Carrito de compras - VictiusStore</title>
+    <!-- Bootstrap (opcional pero recomendado) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body{ background:#0d1117; color:#fff; }
-        .card{ background:#161b22; border:1px solid #30363d; border-radius:16px; }
-        .navbar{ background:#161b22; }
-    </style>
+
+    <!-- Tu CSS propio (ajusta la ruta si lo tienes en otro lado) -->
+    <link rel="stylesheet" href="assets/css/estilos.css">
 </head>
-<body>
+<body class="bg-dark text-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark mb-5">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="index.php">Victius Veracruz</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMain">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="index.php">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="tienda.php">Tienda</a></li>
-        <li class="nav-item"><a class="nav-link active" href="carrito.php">Carrito</a></li>
-        <li class="nav-item"><a class="nav-link" href="pago.php">Pago</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+<?php
+// Si tienes un navbar común en navbar.php lo incluimos
+if (file_exists('navbar.php')) {
+    include 'navbar.php';
+}
+?>
 
-<div class="container pb-5">
-    <h2 class="mb-4">🛒 Carrito</h2>
+<div class="container py-5">
+    <h1 class="mb-4 text-center">🛒 Carrito de compras</h1>
 
-    <div class="card p-4">
-        <?php if (!empty($_SESSION['carrito'])): ?>
-            <div class="table-responsive mb-3">
-                <table class="table table-dark table-striped align-middle mb-0">
-                    <thead>
+    <?php if (empty($carrito)): ?>
+        <div class="alert alert-warning text-center">
+            Tu carrito está vacío.
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="tienda.php" class="btn btn-primary">
+                ⬅️ Volver a la tienda
+            </a>
+        </div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-dark table-striped align-middle">
+                <thead>
                     <tr>
                         <th>Producto</th>
                         <th class="text-center">Cantidad</th>
-                        <th class="text-end">Precio</th>
+                        <th class="text-end">Precio unitario</th>
                         <th class="text-end">Subtotal</th>
                     </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($_SESSION['carrito'] as $item): ?>
+                </thead>
+                <tbody>
+                    <?php foreach ($carrito as $item): ?>
+                        <?php
+                            $nombre   = $item['nombre']   ?? 'Producto';
+                            $precio   = $item['precio']   ?? 0;
+                            $cantidad = $item['cantidad'] ?? 1;
+                            $subtotal = $precio * $cantidad;
+                        ?>
                         <tr>
-                            <td><?= htmlspecialchars($item['nombre']) ?></td>
-                            <td class="text-center"><?= (int)$item['cantidad'] ?></td>
-                            <td class="text-end">$<?= number_format($item['precio'], 2) ?> MXN</td>
-                            <td class="text-end">$<?= number_format($item['precio'] * $item['cantidad'], 2) ?> MXN</td>
+                            <td><?= htmlspecialchars($nombre) ?></td>
+                            <td class="text-center"><?= (int)$cantidad ?></td>
+                            <td class="text-end">$<?= number_format($precio, 2) ?></td>
+                            <td class="text-end">$<?= number_format($subtotal, 2) ?></td>
                         </tr>
                     <?php endforeach; ?>
-                    </tbody>
-                    <tfoot>
+                </tbody>
+                <tfoot>
                     <tr>
                         <th colspan="3" class="text-end">Total:</th>
-                        <th class="text-end text-success">$<?= number_format($total, 2) ?> MXN</th>
+                        <th class="text-end">$<?= number_format($total, 2) ?></th>
                     </tr>
-                    </tfoot>
-                </table>
-            </div>
+                </tfoot>
+            </table>
+        </div>
 
-            <div class="d-flex flex-wrap gap-2">
-                <a href="tienda.php" class="btn btn-outline-light btn-sm">Seguir comprando</a>
-                <a href="pago.php" class="btn btn-primary btn-sm">Ir a pagar</a>
+        <div class="d-flex flex-wrap gap-2 justify-content-between mt-4">
+            <!-- Seguir comprando -->
+            <a href="tienda.php" class="btn btn-secondary">
+                ⬅️ Seguir comprando
+            </a>
 
-                <!-- 🔹 NUEVO BOTÓN: Guardar carrito en Mongo -->
-                <button id="btn-guardar-mongo" class="btn btn-success btn-sm">
-                    Guardar carrito en Mongo (sin pagar)
-                </button>
-            </div>
-        <?php else: ?>
-            <p class="text-warning mb-0">Tu carrito está vacío.</p>
-        <?php endif; ?>
-    </div>
+            <!-- Vaciar carrito (NUEVO BOTÓN) -->
+            <a href="vaciar_carrito.php" class="btn btn-danger">
+                🗑️ Vaciar carrito
+            </a>
+
+            <!-- Ir a pagar -->
+            <a href="pago.php" class="btn btn-success ms-auto">
+                💳 Proceder al pago
+            </a>
+        </div>
+    <?php endif; ?>
 </div>
 
+<!-- JS de Bootstrap (opcional) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-const btn = document.getElementById('btn-guardar-mongo');
-if (btn) {
-    btn.addEventListener('click', () => {
-        fetch('guardar_pedido.php', {
-            method: 'POST',
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(json => {
-            console.log('Respuesta Mongo:', json);
-            if (json.ok) {
-                alert('Carrito guardado en MongoDB ✔');
-            } else {
-                alert('Error guardando en Mongo: ' + (json.msg || 'desconocido'));
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('No se pudo conectar al backend.');
-        });
-    });
-}
-</script>
-
 </body>
 </html>
