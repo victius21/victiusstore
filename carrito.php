@@ -2,10 +2,10 @@
 // carrito.php
 session_start();
 
-// Obtenemos el carrito desde la sesión (si no existe, arreglo vacío)
+// Obtenemos el carrito desde la sesión
 $carrito = isset($_SESSION['carrito']) ? $_SESSION['carrito'] : [];
 
-// Calculamos total
+// Calculamos el total
 $total = 0;
 foreach ($carrito as $item) {
     $subtotal = ($item['precio'] ?? 0) * ($item['cantidad'] ?? 1);
@@ -17,16 +17,16 @@ foreach ($carrito as $item) {
 <head>
     <meta charset="UTF-8">
     <title>Carrito de compras - VictiusStore</title>
-    <!-- Bootstrap (opcional pero recomendado) -->
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Tu CSS propio (ajusta la ruta si lo tienes en otro lado) -->
+    <!-- Tu CSS -->
     <link rel="stylesheet" href="assets/css/estilos.css">
 </head>
 <body class="bg-dark text-light">
 
 <?php
-// Si tienes un navbar común en navbar.php lo incluimos
 if (file_exists('navbar.php')) {
     include 'navbar.php';
 }
@@ -36,16 +36,13 @@ if (file_exists('navbar.php')) {
     <h1 class="mb-4 text-center">🛒 Carrito de compras</h1>
 
     <?php if (empty($carrito)): ?>
-        <div class="alert alert-warning text-center">
-            Tu carrito está vacío.
-        </div>
+        <div class="alert alert-warning text-center">Tu carrito está vacío.</div>
 
         <div class="text-center mt-3">
-            <a href="tienda.php" class="btn btn-primary">
-                ⬅️ Volver a la tienda
-            </a>
+            <a href="tienda.php" class="btn btn-primary">⬅️ Volver a la tienda</a>
         </div>
     <?php else: ?>
+
         <div class="table-responsive">
             <table class="table table-dark table-striped align-middle">
                 <thead>
@@ -59,10 +56,10 @@ if (file_exists('navbar.php')) {
                 <tbody>
                     <?php foreach ($carrito as $item): ?>
                         <?php
-                            $nombre   = $item['nombre']   ?? 'Producto';
-                            $precio   = $item['precio']   ?? 0;
-                            $cantidad = $item['cantidad'] ?? 1;
-                            $subtotal = $precio * $cantidad;
+                        $nombre   = $item['nombre']   ?? 'Producto';
+                        $precio   = $item['precio']   ?? 0;
+                        $cantidad = $item['cantidad'] ?? 1;
+                        $subtotal = $precio * $cantidad;
                         ?>
                         <tr>
                             <td><?= htmlspecialchars($nombre) ?></td>
@@ -82,25 +79,29 @@ if (file_exists('navbar.php')) {
         </div>
 
         <div class="d-flex flex-wrap gap-2 justify-content-between mt-4">
+
             <!-- Seguir comprando -->
-            <a href="tienda.php" class="btn btn-secondary">
-                ⬅️ Seguir comprando
-            </a>
+            <a href="tienda.php" class="btn btn-secondary">⬅️ Seguir comprando</a>
 
-            <!-- Vaciar carrito (NUEVO BOTÓN) -->
-            <a href="vaciar_carrito.php" class="btn btn-danger">
-                🗑️ Vaciar carrito
-            </a>
+            <!-- Vaciar carrito -->
+            <a href="vaciar_carrito.php" class="btn btn-danger">🗑️ Vaciar carrito</a>
 
-            <!-- Ir a pagar -->
-            <a href="pago.php" class="btn btn-success ms-auto">
-                💳 Proceder al pago
-            </a>
+            <!-- Guardar pedido en Mongo -->
+            <form action="guardar_pedido.php" method="POST">
+                <button type="submit" class="btn btn-warning">
+                    💾 Guardar pedido
+                </button>
+            </form>
+
+            <!-- Proceder al pago -->
+            <a href="pago.php" class="btn btn-success ms-auto">💳 Proceder al pago</a>
+
         </div>
+
     <?php endif; ?>
 </div>
 
-<!-- JS de Bootstrap (opcional) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
