@@ -2,6 +2,9 @@
 // carrito.php
 session_start();
 
+// Mensaje de guardado (viene de guardar_pedido.php)
+$estadoGuardado = isset($_GET['guardado']) ? $_GET['guardado'] : null;
+
 // Obtenemos el carrito desde la sesión
 $carrito = isset($_SESSION['carrito']) ? $_SESSION['carrito'] : [];
 
@@ -34,6 +37,19 @@ if (file_exists('navbar.php')) {
 
 <div class="container py-5">
     <h1 class="mb-4 text-center">🛒 Carrito de compras</h1>
+
+    <!-- ALERT BONITO DE GUARDADO -->
+    <?php if ($estadoGuardado === '1'): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            ✅ Tu pedido se guardó correctamente en la base de datos.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php elseif ($estadoGuardado === '0'): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ❌ Ocurrió un error al guardar tu pedido. Intenta de nuevo.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
     <?php if (empty($carrito)): ?>
         <div class="alert alert-warning text-center">Tu carrito está vacío.</div>
